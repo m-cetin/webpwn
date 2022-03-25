@@ -48,7 +48,6 @@ def progress_bar():
 # toDo: add selfupdate from git
 
 # xingdumper tool from @l4rm4nd
-
 def xing_dumper():
     def login(mail, password):
             s = requests.Session()
