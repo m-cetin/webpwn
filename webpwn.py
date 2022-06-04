@@ -48,6 +48,7 @@ def progress_bar():
 # toDo: add selfupdate from git
 
 # xingdumper tool from @l4rm4nd
+
 def xing_dumper():
     def login(mail, password):
             s = requests.Session()
@@ -160,7 +161,7 @@ def xing_dumper():
             creds = authentication()
             userXing = creds[0]
             passXing = creds[1]
-            if userXing != 0 and passXing != 0:
+            if userXing == 0 or passXing == 0:
                 break
         except:
             pass
@@ -201,6 +202,7 @@ def xing_dumper():
                 legende = "E-Mail"
 
                 dump_count = 0
+                
 
                 # loop over employees, output in format "g.schmidt@google.com" 
                 pathlib.Path('recon').mkdir(parents=True,exist_ok=True)
@@ -252,16 +254,23 @@ def main_menu():
 		print("--------------------------------------------")
 		print(Fore.RESET)
 		fields = ('Enter 1 - Email addresses with OSINT\n'
-		  	  'Enter e - to exit\n'
+                'Enter 2 - Subdomain Enumeration\n'
+		  	  'Enter q - to quit\n'
 		          'Your choice: ')
 		choice = input(fields)
 		if choice == "1":
 			print()
-			xing_dumper()
-		else:
+			xing_dumper() # entweder xingdumper oder crosslinked als auswahl
+                        # crossLinked() -> Funktion für crosslinked
+		elif choice == "2":
+			print("boss")
+		
+		elif choice == "q":
 			print("Ok, bye!")
 			break
-
+		else:
+			print(Fore.RED + "\nNo valid input detected!")
+			print(Fore.RESET)
 
 
 # start main functions
