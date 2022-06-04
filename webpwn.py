@@ -161,7 +161,7 @@ def xing_dumper():
             creds = authentication()
             userXing = creds[0]
             passXing = creds[1]
-            if userXing == 0 or passXing == 0:
+            if userXing != 0 or passXing != 0:
                 break
         except:
             pass
