@@ -14,7 +14,7 @@ The main menu will guide you through.
 
 # Credits
 
-- This tool is inspired by [WebPwn](https://github.com/S3cur3Th1sSh1t/WinPwn) maintained by [S3cur3Th1sSh1t](https://github.com/S3cur3Th1sSh1t)
+- This tool is inspired by [WinPwn](https://github.com/S3cur3Th1sSh1t/WinPwn) maintained by [S3cur3Th1sSh1t](https://github.com/S3cur3Th1sSh1t)
 
 Collection of the tools:
 - [XingDumper](https://github.com/l4rm4nd/XingDumper) by [l4rm4nd](https://github.com/l4rm4nd)
