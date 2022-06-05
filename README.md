@@ -16,6 +16,6 @@ The main menu will guide you through.
 
 - This tool is inspired by [WinPwn](https://github.com/S3cur3Th1sSh1t/WinPwn) maintained by [S3cur3Th1sSh1t](https://github.com/S3cur3Th1sSh1t)
 
-Collection of Recon / email gathering tools being used:
+Collection of recon / email gathering tools being used:
 - [XingDumper](https://github.com/l4rm4nd/XingDumper) by [l4rm4nd](https://github.com/l4rm4nd)
 - [CrossLinked](https://github.com/m8r0wn/CrossLinked) by [m8r0wn](https://github.com/m8r0wn)
