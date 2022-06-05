@@ -10,6 +10,8 @@
 
 `python3 webpwn.py`
 
+The main menu will guide you through.
+
 # Credits
 
 - This tool is inspired by [WebPwn](https://github.com/S3cur3Th1sSh1t/WinPwn) maintained by [S3cur3Th1sSh1t](https://github.com/S3cur3Th1sSh1t)
