@@ -9,6 +9,7 @@ charset-normalizer==2.1.0
 colorama==0.4.5
 cryptography==37.0.4
 DateTime==4.5
+dnslib==0.9.20
 dnspython==2.2.1
 filelock==3.8.0
 google==3.0.0
