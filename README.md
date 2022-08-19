@@ -19,3 +19,11 @@ The main menu will guide you through.
 Recon (email gathering) tools being used:
 - [XingDumper](https://github.com/l4rm4nd/XingDumper) by [l4rm4nd](https://github.com/l4rm4nd)
 - [CrossLinked](https://github.com/m8r0wn/CrossLinked) by [m8r0wn](https://github.com/m8r0wn)
+
+Subdomain Enumeration tools:
+- [Amass](https://github.com/OWASP/Amass) 
+- [Subfinder](https://github.com/projectdiscovery/subfinder)
+- [Sublist3r](https://github.com/aboul3la/Sublist3r)
+- [Turbolist3r](https://github.com/fleetcaptain/Turbolist3r)
+- [assetfinder](https://github.com/tomnomnom/assetfinder)
+
