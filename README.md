@@ -9,6 +9,7 @@ Tested on Linux. Go needs to be installed and the go binaries are needed within 
 # Installation
 
 `git clone https://github.com/m-cetin/webpwn; cd webpwn`
+
 `pip3 install -r requirements.txt`
 
 # Usage
