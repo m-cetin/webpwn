@@ -15,7 +15,8 @@ import argparse
 import os
 import pathlib
 import sys
-import os
+import subprocess
+from subprocess import check_call
 from urllib.error import HTTPError
 from googlesearch import search
 from colorama import Fore, Style
@@ -482,19 +483,130 @@ def main_menu():
 		print("  Main Menu. Please choose your selection!")
 		print("--------------------------------------------")
 		print(Fore.RESET)
-		fields = ('Enter 1 - Email addresses with OSINT\n'
-				'Enter 2 - Subdomain Enumeration\n'
-		  	  'Enter q - to quit\n\n'
+		fields = ('(1) Email addresses with OSINT\n'
+				'(2) Subdomain Enumeration\n'
+		  	  '(q) to quit\n\n'
 				  'Your choice: ')
 		choice = input(fields)
+		print("")
 		if choice == "1":
 			xing_dumper()
 			crosslinked(args)
 			cleanup()
 
 		elif choice == "2":
-			print("boss")
-		
+			print(Fore.BLUE + "--------------------------------------------")
+			print("      Subdomain Menu. Please choose!")
+			print("--------------------------------------------")
+			print(Fore.RESET)
+			fields = ('(1) - Subdomain enum using amass, subfinder, etc.\n'
+				'(2) - Reverse whois lookup\n'
+		  	   '(3) - Scope check (checks the domains against a given scope)\n'
+		  	  '(q) - to quit\n\n'
+				  'Your choice: ')
+			choice = input(fields)
+			if choice == "1":
+				print("\nChecking dependencies..")
+				try:
+					try:
+						check_amass = subprocess.Popen(["./tools/amass", "-h"], stdout=subprocess.DEVNULL,stderr=subprocess.STDOUT)
+						check_amass.wait()
+						check_amass.poll()
+						print(Fore.GREEN + "\n[+] Found Amass!")
+						check_amass = subprocess.Popen(["./tools/assetfinder", "-h"], stdout=subprocess.DEVNULL,stderr=subprocess.STDOUT)
+						check_amass.wait()
+						check_amass.poll()
+						print(Fore.GREEN + "\n[+] Found Assetfinder!")		
+						check_sublist3r=subprocess.Popen(["python","./tools/sublist3r.py"],stdout=subprocess.DEVNULL,stderr=subprocess.STDOUT)
+						check_sublist3r.wait()
+						check_sublist3r.poll()
+						print(Fore.GREEN + "\n[+] Found Sublist3r!")	
+						check_sublist3r=subprocess.Popen(["./tools/subfinder","-h"],stdout=subprocess.DEVNULL,stderr=subprocess.STDOUT)
+						check_sublist3r.wait()
+						check_sublist3r.poll()
+						print(Fore.GREEN + "\n[+] Found subfinder!")		
+						check_sublist3r=subprocess.Popen(["python","./tools/turbolist3r.py", "-h"],stdout=subprocess.DEVNULL,stderr=subprocess.STDOUT)
+						check_sublist3r.wait()
+						check_sublist3r.poll()
+						print(Fore.GREEN + "\n[+] Found Turbolist3r!")	
+						print(Fore.RESET)
+						try:
+							print(Fore.YELLOW + "Be careful! You are actively scanning targets.")
+							print(Fore.RESET)
+							threads_count = input("How fast do you want to scan? Provide the threads. Press enter for default value (10): ")
+							domain_name = input("Which domain do you want to scan? (Example google.com):  ")
+							if domain_name == "":
+								print("No domain name provided..")
+								print(Fore.RED + "Quitting..")
+								print(Fore.RESET)
+								break
+							if threads_count == "":
+								threads_count = 10
+							else:
+								threads_count = int(threads_count)
+							answer_of_scan = input("Do you want to scan now? (y/n): ")
+							if answer_of_scan == "Y" or answer_of_scan == "y" or answer_of_scan == "yes" or answer_of_scan == "":
+								print("######################################################")
+								print("Starting. Please be patient! Amass will take a while..")
+								print("######################################################")
+								pathlib.Path('subdomains').mkdir(parents=True,exist_ok=True)
+								amass_args = "./tools/amass enum -v -src -brute -min-for-recursive 2 -d %s -o subdomains/tmp.txt" % (domain_name)
+								run_amass = check_call(amass_args, shell=True)
+								assetfinder_args = "./tools/assetfinder %s | tee -a subdomains/tmp.txt" % (domain_name)
+								run_assetfinder = check_call(assetfinder_args, shell=True)
+								subfinder_args = "./tools/subfinder -d %s | tee -a subdomains/tmp.txt" % (domain_name)
+								run_subfinder = check_call(subfinder_args, shell=True)
+								sublist_args = "python ./tools/sublist3r.py -d %s -t %s | tee -a subdomains/tmp.txt" % (domain_name, threads_count)
+								run_sublist = check_call(sublist_args, shell=True)
+								turbo_args = "python ./tools/turbolist3r.py -d %s -t %s | tee -a subdomains/tmp.txt" % (domain_name, threads_count)
+								run_turbo = check_call(turbo_args, shell=True)
+								
+								# clean up wordlist
+								print("\n[+] Cleaning up the wordlist.\n")
+								run_cleanup = subprocess.getoutput('cat subdomains/tmp.txt | grep "\." | grep -v "[-]" | grep -v "___" | cut -d "]" -f2 | sed "s/^[ \\\\t]*//" | sort -u > subdomains/domains.txt')
+								delete_tmp_file = subprocess.getoutput('rm -rf subdomains/tmp.txt')	
+								print(Fore.GREEN + "[+] Saved results to subdomains/domains.txt")
+								print(Fore.RESET)								
+							else:
+								print("Okay, see you.")
+							
+						except:
+							print(Fore.RED + "[-] Something went wrong..")
+							print(Fore.RESET)
+					except:
+						print(Fore.RED + "[-] Tools not found. Did you download the tools folder?")
+						print("Quitting..")
+						print(Fore.RESET)
+				except:
+					print("Did not worked")
+			elif choice == "2":
+				reverse_lookup_question = input(Fore.YELLOW + "Using external APIs such as ViewDNS.info. Please provide registrant name, email or domain name of your target: ")
+				print(Fore.RESET)
+				if reverse_lookup_question != "":
+					print("\nChecking dependencies..")
+					check_knock = subprocess.Popen(["./tools/knockknock", "-h"], stdout=subprocess.DEVNULL,stderr=subprocess.STDOUT)
+					check_knock.wait()
+					check_knock.poll()
+					print(Fore.GREEN + "\n[+] Found Knockknock!")
+					print(Fore.RESET)					
+					try:
+						knockknock_args = "./tools/knockknock -n %s -p" % (reverse_lookup_question)
+						run_knockknock = check_call(knockknock_args, shell=True)
+						run_merge_domains = subprocess.getoutput('cat domains.txt >> subdomains/domains.txt; sort -u subdomains/domains.txt; rm -rf ./domains.txt')
+					except:
+						print("Something went wrong.")
+				else:
+					print(Fore.RED + "No valid string detected to search for.")
+					print(Fore.RESET)
+
+			elif choice == "3":
+				print("Ok, lets check scope")		
+			elif choice == "q":
+				break
+			else:
+				print(Fore.RED + "No valid input detected!")
+				print(Fore.RESET)
+
 		elif choice == "q":
 			print("Ok, bye!")
 			break
