@@ -21,9 +21,9 @@ Recon (email gathering) tools being used:
 - [CrossLinked](https://github.com/m8r0wn/CrossLinked) by [m8r0wn](https://github.com/m8r0wn)
 
 Subdomain Enumeration tools:
-- [amass](https://github.com/OWASP/Amass) 
-- [Subfinder](https://github.com/projectdiscovery/subfinder)
-- [Sublist3r](https://github.com/aboul3la/Sublist3r)
-- [Turbolist3r](https://github.com/fleetcaptain/Turbolist3r)
-- [assetfinder](https://github.com/tomnomnom/assetfinder)
-
+- [amass](https://github.com/OWASP/Amass) by [OWASP](https://github.com/OWASP)
+- [Subfinder](https://github.com/projectdiscovery/subfinder) by [projectdiscovery](https://github.com/projectdiscovery)
+- [Sublist3r](https://github.com/aboul3la/Sublist3r) by [aboul3la](https://github.com/aboul3la)
+- [Turbolist3r](https://github.com/fleetcaptain/Turbolist3r) by [fleetcaptain](https://github.com/fleetcaptain)
+- [assetfinder](https://github.com/tomnomnom/assetfinder) by [tomnomnom](https://github.com/tomnomnom)
+- [knockknock](https://github.com/harleo/knockknock) by [harleo](https://github.com/harleo)
