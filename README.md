@@ -2,8 +2,13 @@
 
 "Webpwn" is a collection of commonly used tools to get initial foothold into a targets system. It aims to help penetration testers with collecting email addresses, enumerating subdomains, scanning and exploiting vulnerabilities and a lot more.
 
+# Requirements
+
+Tested on Linux. Go needs to be installed and the go binaries are needed within the "tools" folder. Make sure to clone the whole respository.
+
 # Installation
 
+`git clone https://github.com/m-cetin/webpwn; cd webpwn`
 `pip3 install -r requirements.txt`
 
 # Usage
