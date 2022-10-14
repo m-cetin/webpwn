@@ -33,3 +33,6 @@ Subdomain Enumeration tools:
 - [Turbolist3r](https://github.com/fleetcaptain/Turbolist3r) by [fleetcaptain](https://github.com/fleetcaptain)
 - [assetfinder](https://github.com/tomnomnom/assetfinder) by [tomnomnom](https://github.com/tomnomnom)
 - [knockknock](https://github.com/harleo/knockknock) by [harleo](https://github.com/harleo)
+
+NTLM recon tool:
+- [NTLMRecon](https://github.com/pwnfoo/NTLMRecon) by [pwnfoo](https://github.com/pwnfoo)
