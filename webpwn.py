@@ -16,6 +16,7 @@ import os
 import pathlib
 import sys
 import subprocess
+from shutil import which
 from subprocess import check_call
 from urllib.error import HTTPError
 from googlesearch import search
@@ -94,21 +95,23 @@ def xing_dumper():
 	try:
 		for j in search(keyword+" xing",tld="co.in",num=5,stop=10,pause=1, lang="en"):
 			 progress_bar()
+			 global key_word
 			 if j.startswith('https://www.xing.com/pages'):
 				 global url
 				 url = j
-				 global key_word
 				 key_word = keyword
 				 break
 			 else:
 				 print(Fore.RED + "Company not found!")
 				 print(Fore.RESET)
 				 url = input("What is the XING url (e.g. https://www.xing.com/pages/COMPANYNAME): ")
+				 key_word = keyword
 				 break
 	except HTTPError as err:
 		if err.code == 429:
 			print(Fore.RED + "[-] You are rate limited! Try changing your IP address or wait a few minutes and then retry!")
 			print(Fore.RESET)
+			exit(-1)
 		else:
 			raise
 
@@ -383,6 +386,50 @@ class CrossLinked():
 		logger.debug("FAIL: {} (SAFE:{}) - {}".format(self.engine.upper(), self.safe, link.text), fg='red')
 		return False
 
+def ntlmrecon_checker():
+	print("Checking for ntlmrecon")
+	try:
+		ntlmrecon_type = which("ntlmrecon")
+		if isinstance(ntlmrecon_type, type(None)):
+			print(Fore.YELLOW + "[-] ntlmrecon is not found")
+			print(Fore.RESET)
+			ntlmrecon_install = str(input("Do you want to install it now? (Y/N): "))
+			if ntlmrecon_install == "Y" or ntlmrecon_install == "y":
+				os.popen("sudo pip3 install ntlmrecon").read()
+				sleep(3)
+				if which("ntlmrecon") is None:
+					print(Fore.RED + "[-] Unable to install ntlmrecon. Please do it manually.")
+					print(Fore.RESET)
+					exit(-1)
+				print(Fore.GREEN + "[+] Successfully installed ntlmrecon!")
+				print(Fore.RESET)
+				return True
+			else:
+				print("Hm. Ok.")
+		else:
+			print(Fore.GREEN + "[+] found NTLMRecon!")
+			print(Fore.RESET)
+			return True
+	except:
+		print(Fore.RED + "something went wrong!")
+		print(Fore.RESET)
+		exit
+
+def crunch():
+	question_for_crunch = str(input("Do you want to bruteforce common samaccountnames / user names (Y/N): "))
+	if question_for_crunch == 'Y' or question_for_crunch == 'y':
+		char_count = input("How many characters you want to bruteforce? Default is (3): ")
+		if char_count.isdigit() == True:
+			print("Bruteforcing alphabetical chars with crunch with the length of %s" % (char_count))
+			pathlib.Path('recon').mkdir(parents=True,exist_ok=True)
+			os.popen("crunch %s %s abcdefghijklmnopqrstuvwxyz -o recon/samaccountnames.txt" % (char_count,char_count)).read()
+			print(Fore.YELLOW + "[+] Saved results under recon/samaccountnames!")
+			print(Fore.RESET)
+		else:
+			print("Invalid input.")
+	else:
+		print("Ok!")
+
 def extract_links(resp):
 	links = []
 	soup = BeautifulSoup(resp.content, 'lxml')
@@ -463,6 +510,12 @@ def cleanup():
 		os.popen("sort -u --ignore-case recon/fullname-emails.txt -o recon/fullname-emails.txt 2>/dev/null")
 		os.popen("cat recon/fullname-emails.txt | awk -F\".\" '{print substr($1,1,1),$2,$3}' OFS='.' > recon/emails.txt 2>/dev/null")
 		os.popen("cat recon/fullname-emails.txt | awk -F\".\" '{print substr($1,1,1),$2,\".\"$3}' OFS='' > recon/fl-emails.txt 2>/dev/null")
+		os.popen("cat recon/fl-emails.txt | cut -d'@' -f1 | sed 's/\.//g' > recon/samaccountname-full.txt")
+		os.popen("cat recon/fl-emails.txt | cut -d'@' -f1 | sed 's/\.//g' | sed 's/.$//g' > recon/samaccountname-minus1.txt")
+		os.popen("cat recon/fl-emails.txt | cut -d'@' -f1 | sed 's/\.//g' | sed 's/..$//g' > recon/samaccountname-minus2.txt")
+		os.popen("cat recon/fl-emails.txt | cut -d'@' -f1 | sed 's/\.//g' | sed 's/...$//g' > recon/samaccountname-minus3.txt")
+		os.popen("cat recon/fl-emails.txt | cut -d'@' -f1 | sed 's/\.//g' | sed 's/....$//g' > recon/samaccountname-minus4.txt")
+		os.popen("cat recon/fl-emails.txt | cut -d'@' -f1 | sed 's/\.//g' | sed 's/.....$//g' > recon/samaccountname-minus5.txt")
 
 		pipe = os.popen("cat recon/fullname-emails.txt 2>/dev/null| wc -l | tr --delete '\n'")
 		output_counter_of_emails = pipe.readline()
@@ -485,11 +538,13 @@ def main_menu():
 		print(Fore.RESET)
 		fields = ('(1) Email addresses with OSINT\n'
 				'(2) Subdomain Enumeration\n'
+				'(3) NTLM endpoint enumeration\n'
 		  	  '(q) to quit\n\n'
 				  'Your choice: ')
 		choice = input(fields)
 		print("")
 		if choice == "1":
+			crunch()
 			xing_dumper()
 			crosslinked(args)
 			cleanup()
@@ -502,6 +557,7 @@ def main_menu():
 			fields = ('(1) - Subdomain enum using amass, subfinder, etc.\n'
 				'(2) - Reverse whois lookup\n'
 		  	   '(3) - Scope check (checks the domains against a given scope)\n'
+		  	   '(r) - return\n'
 		  	  '(q) - to quit\n\n'
 				  'Your choice: ')
 			choice = input(fields)
@@ -604,9 +660,47 @@ def main_menu():
 				print("Ok, lets check scope")		
 			elif choice == "q":
 				break
+			elif choice == "r":
+				continue
 			else:
 				print(Fore.RED + "No valid input detected!")
 				print(Fore.RESET)
+		
+		elif choice == "3":
+			check_value = ntlmrecon_checker()
+			if check_value == True:
+				print("Ok, starting!")
+				try:
+					pathlib.Path('ntlmrecon').mkdir(parents=True,exist_ok=True)
+					if pathlib.Path("./subdomains/domains.txt").is_file():
+						if pathlib.Path("./subdomains/domains.txt").stat().st_size != 0:
+							print(Fore.YELLOW + "[+] Detected domains.txt list!")
+							print(Fore.RESET)
+							existing_file = pathlib.Path("./subdomains/domains.txt")
+							ntlmrecon_existing_file=str(input("Do you want to scan your existing domains.txt list (Y/N): "))
+							if ntlmrecon_existing_file == "Y" or ntlmrecon_existing_file == "y":
+								print(subprocess.getoutput('ntlmrecon --infile %s --outfile ntlmrecon/ntlm-endpoints.txt' % (existing_file)))
+								print(Fore.GREEN + "[+] Saved results into ntlmrecon/ntlm-endpoints.txt")
+								print(Fore.RESET)
+					ntlmrecon_range=str(input("Do you want to scan a single IP (IP), an IP range (R) or nothing more (N)? (IP/R/N): "))
+					if ntlmrecon_range == "r" or ntlmrecon_range == "R":
+						ip_range = str(input("Enter your IP range in CIDR notation (e.g. 193.168.2.2/24): "))
+						print(subprocess.getoutput('ntlmrecon --infile %s --outfile ntlmrecon/ntlm-endpoints.txt' % (ip_range)))
+						print(Fore.GREEN + "[+] Saved results into ntlmrecon/ntlm-endpoints-range.txt")
+						print(Fore.GREEN + "[+] Saved results into ntlmrecon/ntlm-endpoints-range.txt")
+						print(Fore.RESET)
+					else:
+						pass
+					if ntlmrecon_range == "IP" or ntlmrecon_range == "ip":
+						ip_address=str(input("Enter your IP address (e.g. 193.168.2.2): "))
+						print(subprocess.getoutput('ntlmrecon --infile %s --outfile ntlmrecon/ntlm-endpoints.txt' % (ip_address)))
+						print(Fore.GREEN + "[+] Saved results into ntlmrecon/ntlm-endpoints-ip.txt")
+						print(Fore.GREEN + "[+] Saved results into ntlmrecon/ntlm-endpoints-ip.txt")
+						print(Fore.RESET)
+					
+					print("See you next time!")
+				except:
+					print("Something went wrong!")
 
 		elif choice == "q":
 			print("Ok, bye!")
