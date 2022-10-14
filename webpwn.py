@@ -509,6 +509,7 @@ def main_menu():
 				print("\nChecking dependencies..")
 				try:
 					try:
+						os.popen("chmod +x ./tools/*")
 						check_amass = subprocess.Popen(["./tools/amass", "-h"], stdout=subprocess.DEVNULL,stderr=subprocess.STDOUT)
 						check_amass.wait()
 						check_amass.poll()
