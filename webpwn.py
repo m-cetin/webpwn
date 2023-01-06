@@ -95,7 +95,7 @@ def mass_sql_injection(burp_history_xml):
         flags = ""
 
     # run sqlmap with the options
-    command = ["sqlmap", "-r", burp_history_xml, "--risk", risk, "--level", level, "--batch", "--dump", "--tamper", tamper, "--threads", threads]
+    command = ["sqlmap", "-r", burp_history_xml, "--risk", risk, "--level", level, "--batch", "--skip", "--dump", "--tamper", tamper, "--threads", threads]
     if flags:
         command += flags.split()
     sqlmap = subprocess.Popen(command, stdout=subprocess.PIPE)
