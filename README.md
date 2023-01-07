@@ -19,9 +19,6 @@ Tested on Linux. Go needs to be installed and the go binaries are needed within 
 The main menu will guide you through.
 
 # Credits
-
-- This tool is inspired by [WinPwn](https://github.com/S3cur3Th1sSh1t/WinPwn) maintained by [S3cur3Th1sSh1t](https://github.com/S3cur3Th1sSh1t)
-
 Google Dorking tools:
 - [Pagodo](https://github.com/opsdisk/pagodo) by [opsdisk](https://github.com/opsdisk)
 
