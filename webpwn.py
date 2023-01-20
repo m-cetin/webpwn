@@ -611,7 +611,7 @@ def main_menu():
 			print(Fore.RESET)
 			fields = ('(1) - Subdomain enum using amass, subfinder, etc.\n'
 				'(2) - Reverse whois lookup\n'
-		  	   '(3) - Scope check (checks the domains against a given scope)\n'
+		  	   '(3) - Power enum with waybackurls and gau\n'
 		  	   '(r) - return\n'
 		  	  '(q) - to quit\n\n'
 				  'Your choice: ')
@@ -712,7 +712,47 @@ def main_menu():
 					print(Fore.RESET)
 
 			elif choice == "3":
-				print("Ok, lets check scope")		
+				print("Checking dependencies!")
+				try:
+					print("Let's see..")
+					os.popen("chmod +x ./tools/*")
+					check_wayback=subprocess.Popen(["./tools/waybackurls", "-h"], stdout=subprocess.DEVNULL,stderr=subprocess.STDOUT)
+					check_wayback.wait()
+					check_wayback.poll()
+					print(Fore.GREEN + "\n[+] Found Waybackurls!")
+					check_gau=subprocess.Popen(["./tools/gau","-h"], stdout=subprocess.DEVNULL,stderr=subprocess.STDOUT)
+					check_gau.wait()
+					check_gau.poll()
+					print("\n[+] Found Gau!")
+					print(Fore.RESET)
+				except:
+					print("Something went wrong with checking gau and waybackurls within tools folder.")
+				try:
+					ask_for_domains = input("Do you want to use your domains.txt file? (Y/N): ")
+					if ask_for_domains == "Y" or ask_for_domains == "y":
+						if pathlib.Path("./subdomains/domains.txt").is_file():
+							print(Fore.YELLOW + "[+] Detected domains.txt list!")
+							print(Fore.RESET)
+							domains_list = pathlib.Path("./subdomains/domains.txt")
+							gau_args = "cat ./subdomains/domains.txt | ./tools/gau %s | tee -a subdomains/old_domains.txt" % (domains_list)
+							waybackuris_args = "cat ./subdomains/domains.txt | ./tools/waybackurls | tee -a subdomains/old_domains.txt"
+							run_gau = check_call(gau_args, shell=True)
+							run_waybackuris = check_call(waybackuris_args, shell=True)
+							sort_unique=subprocess.Popen(["sort", "-u", "subdomains/old_domains.txt"], stdout=subprocess.DEVNULL,stderr=subprocess.STDOUT)
+							print("Saved results into subdomains/old_domains.txt")
+					elif ask_for_domains == "N" or ask_for_domains == "n":
+						scope = input("What domain you want to scan? (e.g. google.com): ")
+						gau_args = "./tools/gau %s | tee -a subdomains/old_domains.txt" % (scope)
+						waybackuris_args = "./tools/waybackurls %s | tee -a subdomains/old_domains.txt" % (scope)
+						run_gau = check_call(gau_args, shell=True)
+						run_waybackuris = check_call(waybackuris_args, shell=True)
+						print("Cleaned up the results with sort unique")
+						sort_unique=subprocess.Popen(["sort", "-u", "subdomains/old_domains.txt"], stdout=subprocess.DEVNULL,stderr=subprocess.STDOUT)
+						print("Saved results into subdomains/old_domains.txt")
+					else:
+						print("Ok!")
+				except:
+					print("Could not enumerate")	
 			elif choice == "q":
 				break
 			elif choice == "r":
@@ -737,18 +777,18 @@ def main_menu():
 								print(subprocess.getoutput('ntlmrecon --infile %s --outfile ntlmrecon/ntlm-endpoints.txt' % (existing_file)))
 								print(Fore.GREEN + "[+] Saved results into ntlmrecon/ntlm-endpoints.txt")
 								print(Fore.RESET)
-					ntlmrecon_range=str(input("Do you want to scan a single IP (IP), an IP range (R) or nothing more (N)? (IP/R/N): "))
+					ntlmrecon_range=str(input("Do you want to scan a single IP/domain (IP), an IP range (R) or nothing more (N)? (IP/R/N): "))
 					if ntlmrecon_range == "r" or ntlmrecon_range == "R":
 						ip_range = str(input("Enter your IP range in CIDR notation (e.g. 193.168.2.2/24): "))
-						print(subprocess.getoutput('ntlmrecon --infile %s --outfile ntlmrecon/ntlm-endpoints.txt' % (ip_range)))
+						print(subprocess.getoutput('ntlmrecon --input %s --outfile ntlmrecon/ntlm-endpoints.txt' % (ip_range)))
 						print(Fore.GREEN + "[+] Saved results into ntlmrecon/ntlm-endpoints-range.txt")
 						print(Fore.GREEN + "[+] Saved results into ntlmrecon/ntlm-endpoints-range.txt")
 						print(Fore.RESET)
 					else:
 						pass
 					if ntlmrecon_range == "IP" or ntlmrecon_range == "ip":
-						ip_address=str(input("Enter your IP address (e.g. 193.168.2.2): "))
-						print(subprocess.getoutput('ntlmrecon --infile %s --outfile ntlmrecon/ntlm-endpoints.txt' % (ip_address)))
+						ip_address=str(input("Enter your IP address or domain name (e.g. 193.168.2.2 or google.com): "))
+						print(subprocess.getoutput('ntlmrecon --input %s --outfile ntlmrecon/ntlm-endpoints.txt' % (ip_address)))
 						print(Fore.GREEN + "[+] Saved results into ntlmrecon/ntlm-endpoints-ip.txt")
 						print(Fore.GREEN + "[+] Saved results into ntlmrecon/ntlm-endpoints-ip.txt")
 						print(Fore.RESET)
