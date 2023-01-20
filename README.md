@@ -34,5 +34,9 @@ Subdomain Enumeration tools:
 - [assetfinder](https://github.com/tomnomnom/assetfinder) by [tomnomnom](https://github.com/tomnomnom)
 - [knockknock](https://github.com/harleo/knockknock) by [harleo](https://github.com/harleo)
 
+Back to the future enumeration tools:
+- [waybackurls](https://github.com/tomnomnom/waybackurls) by [tomnomnom](https://github.com/tomnomnom)
+- [gau](https://github.com/lc/gau) by [lc](https://github.com/lc)
+
 NTLM recon tool:
 - [NTLMRecon](https://github.com/pwnfoo/NTLMRecon) by [pwnfoo](https://github.com/pwnfoo)
