@@ -16,6 +16,8 @@ import os
 import pathlib
 import sys
 import subprocess
+import random
+import time
 from shutil import which
 from subprocess import check_call
 from urllib.error import HTTPError
@@ -525,6 +527,145 @@ def crosslinked(args):
 			logger.success("{:30} - {}".format(data['first']+" "+data['last'], data['title']))
 		ledger.info(id)
 	
+def getTheirMails():
+    # Prompt user for employee's full name and domain
+    full_name = input("Enter the full name of the employee: ")
+    domain = input("Enter the domain name for emails (e.g., @company.com): ")
+    print("Slowing down the requests a bit to avoid getting blocked by Microsoft. PLEASE BE PATIENT!")
+
+    # Extract first name and last name
+    first_name, last_name = full_name.lower().split(" ")
+    first_name = first_name.replace("ä", "ae").replace("ü", "ue").replace("ö", "oe").replace("ß", "ss")
+    last_name = last_name.replace("ä", "ae").replace("ü", "ue").replace("ö", "oe").replace("ß", "ss")
+
+    # Handle hyphenated names
+    if "-" in first_name:
+        first_name_initials = "-".join([name[0] for name in first_name.split("-")])
+        first_name_patterns = [
+            f"{first_name_initials}.{last_name}{domain}",
+            f"{first_name_initials[0]}-{last_name}{domain}",
+            f"{first_name[0]}.{last_name}{domain}",
+            f"{first_name[0]}{last_name}{domain}",
+            f"{first_name_initials[0]}.{last_name}{domain}",
+            f"{first_name_initials[0]}{last_name}{domain}"
+        ]
+    else:
+        first_name_patterns = [
+            f"{first_name}.{last_name}{domain}",
+            f"{first_name[0]}.{last_name}{domain}",
+            f"{first_name[0]}{last_name}{domain}",
+            f"{last_name}.{first_name}{domain}",
+            f"{last_name}.{first_name[0]}{domain}",
+            f"{last_name}{domain}",
+            f"{last_name}_{first_name}{domain}",
+            f"{last_name}_{first_name[0]}{domain}",
+            f"{last_name[:3]}{domain}",
+            f"{last_name[:2]}{domain}",
+            f"{last_name[:4]}{domain}",
+            f"{last_name[:5]}{domain}",
+            f"{first_name}-{last_name}{domain}",
+            f"{first_name}_{last_name}{domain}"
+        ]
+
+    if "-" in last_name:
+        last_name_patterns = [
+            f"{first_name}.{last_name.replace('-', '')}{domain}",
+            f"{first_name[0]}.{last_name.replace('-', '')}{domain}",
+            f"{first_name[0]}{last_name.replace('-', '')}{domain}",
+            f"{last_name.replace('-', '')}.{first_name}{domain}",
+            f"{last_name.replace('-', '')}.{first_name[0]}{domain}",
+            f"{last_name.replace('-', '')}{domain}",
+            f"{last_name.replace('-', '')}_{first_name}{domain}",
+            f"{last_name.replace('-', '')}_{first_name[0]}{domain}",
+            f"{last_name.replace('-', '')[:3]}{domain}",
+            f"{last_name.replace('-', '')[:2]}{domain}",
+            f"{last_name.replace('-', '')[:4]}{domain}",
+            f"{last_name.replace('-', '')[:5]}{domain}",
+            f"{first_name}-{last_name.replace('-', '')}{domain}",
+            f"{first_name}_{last_name.replace('-', '')}{domain}"
+        ]
+    else:
+        last_name_patterns = [
+            f"{first_name}.{last_name}{domain}",
+            f"{first_name[0]}.{last_name}{domain}",
+            f"{first_name[0]}{last_name}{domain}",
+            f"{last_name}.{first_name}{domain}",
+            f"{last_name}.{first_name[0]}{domain}",
+            f"{last_name}{domain}",
+            f"{last_name}_{first_name}{domain}",
+            f"{last_name}_{first_name[0]}{domain}",
+            f"{last_name[:3]}{domain}",
+            f"{last_name[:2]}{domain}",
+            f"{last_name[:4]}{domain}",
+            f"{last_name[:5]}{domain}",
+            f"{first_name}-{last_name}{domain}",
+            f"{first_name}_{last_name}{domain}"
+        ]
+
+    # Combine first name and last name patterns
+    email_patterns = first_name_patterns + last_name_patterns
+
+    # Print colored output
+    found_email = False
+    for email_pattern in email_patterns:
+        if emailExists(email_pattern) == "Yes":
+            found_email = True
+            print(f"{Fore.GREEN}++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+            print(f"BOOM! SUCCESS: {Fore.YELLOW}{email_pattern}{Fore.GREEN}")
+            print("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++" + Style.RESET_ALL)
+            break
+
+    if not found_email:
+        print(f"{Fore.RED}No email found for the provided naming convention.{Style.RESET_ALL}")
+
+
+    
+def emailExists(email):
+    try:
+        # Delay between requests
+        delay = random.uniform(1, 3)
+        # Maximum jitter to add to the delay
+        max_jitter = 0.5
+
+        # Random jitter
+        jitter = random.uniform(0, max_jitter)
+        time.sleep(delay + jitter)
+
+        # Define User-Agent header
+        user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.61 Safari/537.36"
+
+        # Define additional HTTP headers
+        headers = {
+            "User-Agent": user_agent,
+            "X-Requested-With": "XMLHttpRequest"
+        }
+
+        get_credential_type_url = "https://login.microsoftonline.com/common/GetCredentialType"
+        # Check if user account exists in Azure AD.
+        response = requests.post(get_credential_type_url, json={"Username": email}, headers=headers)
+        
+        # Check if the account exists in Azure AD
+        if response.status_code == 200 and response.json().get("IfExistsResult") == 0:
+            # Perform another request to check domain federation status
+            response = requests.get(f"{get_user_realm_url}?login={email}&xml=1", headers=headers)
+            
+            # Parse the XML response
+            if response.status_code == 200:
+                xml_response = response.text
+                if "<IsFederatedNS>true</IsFederatedNS>" in xml_response:
+                    federation_brand_name = xml_response.split("<FederationBrandName>")[1].split("</FederationBrandName>")[0]
+                    return f"Unknown (Federated domain handled by {federation_brand_name})"
+                else:
+                    return "Yes"
+    
+        return "No"
+
+    except requests.exceptions.RequestException as e:
+        print(f"{Fore.RED}[-] You are probably rate limited. Try changing your IP.{Style.RESET_ALL}")
+        exit
+
+    return "No"
+
 
 if 0 == 0:
 	args = argparse.ArgumentParser(description="", formatter_class=argparse.RawTextHelpFormatter, usage=argparse.SUPPRESS)
@@ -590,8 +731,9 @@ def main_menu():
 		print("  Main Menu. Please choose your selection!")
 		print("--------------------------------------------")
 		print(Fore.RESET)
-		fields = ('(1) Email addresses with OSINT\n'
-				'(2) Subdomain Enumeration\n'
+		fields = ('(1) Email addresses gathering with OSINT\n'
+                           '(1b) Get E-Mail convention of your target\n'		
+				'(2) Subdomain enumeration\n'
 				'(3) NTLM endpoint enumeration\n'
                 '(4) SQL Mass Injection\n'
 		  	  '(q) to quit\n\n'
@@ -603,6 +745,9 @@ def main_menu():
 			xing_dumper()
 			crosslinked(args)
 			cleanup()
+		
+		if choice == "1b":
+			getTheirMails()
 
 		elif choice == "2":
 			print(Fore.BLUE + "--------------------------------------------")
