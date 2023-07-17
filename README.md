@@ -1,24 +1,35 @@
-# Pwning systems - the easy way
+# WebPwn - A Comprehensive Toolkit for Penetration Testers
 
-"Webpwn" is a collection of commonly used tools to get initial foothold into a targets system. It aims to help penetration testers with collecting email addresses, enumerating subdomains, scanning and exploiting vulnerabilities and a lot more. Do not use it in any illegal activity.
+WebPwn is an advanced and all-inclusive collection of tools specifically designed to assist penetration testers in obtaining a solid initial foothold into targeted systems. This powerful toolkit encompasses a wide array of functionalities, including but not limited to email address collection, subdomain enumeration, vulnerability scanning, and exploitation techniques. It is essential to note that WebPwn is intended solely for legal and ethical purposes within the field of penetration testing. Its application for any illegal activities is strictly prohibited.
 
-# Requirements
+By utilizing WebPwn, penetration testers can enhance their capabilities and streamline their assessment process, ensuring thorough and effective security evaluations. Whether you are conducting web application assessments, network penetration tests, or vulnerability analyses, WebPwn offers a comprehensive suite of tools to facilitate your objectives.
 
-Tested on Linux. Go needs to be installed and the go binaries are needed within the "tools" folder. Make sure to clone the whole respository.
+Please remember to exercise responsible usage and adhere to applicable laws and regulations while utilizing WebPwn. Our aim is to provide a valuable resource to penetration testers, fostering a safer and more secure digital landscape.
 
-In order to use the email gathering tool fully, you need:
+# Tool Requirements (Linux-only)
 
-+ 1x XING account
+General recommendations:
 
-Should also work without one, but I highly suggest using it. You can create an temp account for this purpose.
++ Install Go and place Go binaries in the "tools" folder.
++ Clone the entire repository.
+
+For full functionality of the email gathering tool, you will need:
+
++ 1 XING account.
+
+Although it may work without an account, we strongly recommend using one. Creating a temporary account for this purpose is suggested.
 
 # Installation
+
+To install all requirements, simply do:
 
 `git clone https://github.com/m-cetin/webpwn; cd webpwn`
 
 `pip3 install -r requirements.txt`
 
 # Usage
+
+Just run:
 
 `python3 webpwn.py`
 
