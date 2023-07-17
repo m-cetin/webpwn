@@ -6,6 +6,12 @@
 
 Tested on Linux. Go needs to be installed and the go binaries are needed within the "tools" folder. Make sure to clone the whole respository.
 
+In order to use the email gathering tool fully, you need:
+
++ 1x XING account
+
+Should also work without one, but I highly suggest using it. You can create an temp account for this purpose.
+
 # Installation
 
 `git clone https://github.com/m-cetin/webpwn; cd webpwn`
@@ -17,13 +23,6 @@ Tested on Linux. Go needs to be installed and the go binaries are needed within 
 `python3 webpwn.py`
 
 The main menu will guide you through.
-
-# Requirements
-In order to use the email gathering tool fully, you need:
-
-+ 1x XING account
-
-Should also work without one, but I highly suggest using it. You can create an temp account for this purpose.
 
 # What you can do
 
