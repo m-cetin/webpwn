@@ -608,7 +608,7 @@ def getTheirMails():
     # Print colored output
     found_email = False
     for email_pattern in email_patterns:
-        if emailExists(email_pattern) == "Yes":
+        if emailExists(email_pattern):
             found_email = True
             print(f"{Fore.GREEN}++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
             print(f"BOOM! SUCCESS: {Fore.YELLOW}{email_pattern}{Fore.GREEN}")
@@ -619,7 +619,6 @@ def getTheirMails():
         print(f"{Fore.RED}No email found for the provided naming convention.{Style.RESET_ALL}")
 
 
-    
 def emailExists(email):
     try:
         # Delay between requests
@@ -641,30 +640,25 @@ def emailExists(email):
         }
 
         get_credential_type_url = "https://login.microsoftonline.com/common/GetCredentialType"
+
         # Check if user account exists in Azure AD.
         response = requests.post(get_credential_type_url, json={"Username": email}, headers=headers)
-        
+
         # Check if the account exists in Azure AD
         if response.status_code == 200 and response.json().get("IfExistsResult") == 0:
-            # Perform another request to check domain federation status
-            response = requests.get(f"{get_user_realm_url}?login={email}&xml=1", headers=headers)
-            
             # Parse the XML response
-            if response.status_code == 200:
-                xml_response = response.text
-                if "<IsFederatedNS>true</IsFederatedNS>" in xml_response:
-                    federation_brand_name = xml_response.split("<FederationBrandName>")[1].split("</FederationBrandName>")[0]
-                    return f"Unknown (Federated domain handled by {federation_brand_name})"
-                else:
-                    return "Yes"
-    
-        return "No"
+            xml_response = response.text
+            if "<IsFederatedNS>true</IsFederatedNS>" in xml_response:
+                federation_brand_name = xml_response.split("<FederationBrandName>")[1].split("</FederationBrandName>")[0]
+                return f"Unknown (Federated domain handled by {federation_brand_name})"
+            else:
+                return True
+
+        return False
 
     except requests.exceptions.RequestException as e:
-        print(f"{Fore.RED}[-] You are probably rate limited. Try changing your IP.{Style.RESET_ALL}")
-        exit
-
-    return "No"
+        print(f"{Fore.RED}[-] You are probably rate-limited. Try changing your IP.{Style.RESET_ALL}")
+        exit()
 
 
 if 0 == 0:
