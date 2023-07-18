@@ -107,5 +107,8 @@ Back to the future enumeration tools:
 - [waybackurls](https://github.com/tomnomnom/waybackurls) by [tomnomnom](https://github.com/tomnomnom)
 - [gau](https://github.com/lc/gau) by [lc](https://github.com/lc)
 
+Check if domains are alive:
+- [httpx](https://github.com/projectdiscovery/httpx) by [projectdiscover](https://github.com/projectdiscovery)
+
 NTLM recon tool:
 - [NTLMRecon](https://github.com/pwnfoo/NTLMRecon) by [pwnfoo](https://github.com/pwnfoo)
