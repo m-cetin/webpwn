@@ -22,9 +22,11 @@ Although it may work without an account, we strongly recommend using one. Creati
 # Installation
 
 Install httpx, if not available:
+
 ```wget https://github.com/projectdiscovery/httpx/releases/download/v1.3.3/httpx_1.3.3_linux_amd64.zip -O httpx.zip; unzip httpx.zip; sudo cp httpx /usr/bin```
 
 Get WebPwn:
+
 ```git clone https://github.com/m-cetin/webpwn; cd webpwn```
 
 ```pip3 install -r requirements.txt```
