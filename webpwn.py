@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # Collection of common pentest tools to get initial foothold into a company
-# author: Mesut Cetin
+# author: Mesut Cetin, RedTeamer IT Security
 # -*- coding: utf-8 -*-
 
 import colorama
@@ -19,7 +19,7 @@ import subprocess
 import random
 import time
 from shutil import which
-from subprocess import check_call
+from subprocess import check_call, STDOUT
 from urllib.error import HTTPError
 from googlesearch import search
 from colorama import Fore, Style
@@ -39,7 +39,8 @@ import xml.etree.ElementTree as ET
 def banner():
 	ascii_banner = pyfiglet.figlet_format("WebPwn")
 	print(Fore.GREEN + ascii_banner)
-	print("No technology that's connected to the Internet is unhackable\n\n")
+	print("No technology that's connected to the Internet is unhackable")
+	print("- RedTeamer IT Security\n")
 
 # progress bar
 def compute():
@@ -807,17 +808,32 @@ def main_menu():
 								run_assetfinder = check_call(assetfinder_args, shell=True)
 								subfinder_args = "./tools/subfinder -d %s | tee -a subdomains/tmp.txt" % (domain_name)
 								run_subfinder = check_call(subfinder_args, shell=True)
-								sublist_args = "python ./tools/sublist3r.py -d %s -t %s | tee -a subdomains/tmp.txt" % (domain_name, threads_count)
-								run_sublist = check_call(sublist_args, shell=True)
-								turbo_args = "python ./tools/turbolist3r.py -d %s -t %s | tee -a subdomains/tmp.txt" % (domain_name, threads_count)
-								run_turbo = check_call(turbo_args, shell=True)
-								
+								try:
+									sublist_args = "python ./tools/sublist3r.py -d %s -t %s 2>/dev/null | tee -a subdomains/tmp.txt" % (domain_name, threads_count)
+									run_sublist = check_call(sublist_args, shell=True)
+								except CalledProcessError:
+									pass
+								turbo_args = "python ./tools/turbolist3r.py -d %s -t %s 2>/dev/null | tee -a subdomains/tmp.txt" % (domain_name, threads_count)
+								try:
+									run_turbo = check_call(turbo_args, shell=True)
+								except CalledProcessError:
+									pass
 								# clean up wordlist
 								print("\n[+] Cleaning up the wordlist.\n")
 								run_cleanup = subprocess.getoutput('cat subdomains/tmp.txt | grep "\." | grep -v "[-]" | grep -v "___" | cut -d "]" -f2 | sed "s/^[ \\\\t]*//" | sort -u > subdomains/domains.txt')
 								delete_tmp_file = subprocess.getoutput('rm -rf subdomains/tmp.txt')	
 								print(Fore.GREEN + "[+] Saved results to subdomains/domains.txt")
-								print(Fore.RESET)								
+								print(Fore.RESET)
+								try:
+									print("[+] Now let's try to get live domains, shall we?")
+									print("[+] Checking only ports 80,443,8080,8443,8000.\n")
+									httpx_args = "cat subdomains/domains.txt | httpx -p 80,443,8080,8443,8080 -silent -ip -sc | tee -a /tmp/httpx_output.txt"
+									httpx_args2 = "cat /tmp/httpx_output.txt | cut -d ' ' -f1 > subdomains/live.txt"
+									run_httpx = check_call(httpx_args, shell=True)
+									run_httpx2 = check_call(httpx_args2, shell=True)
+									print(Fore.RESET + "\n[+] Saved results under subdomains/live.txt")
+								except:
+									print("[-] Could not run httpx. Did you installed it?")								
 							else:
 								print("Okay, see you.")
 							
