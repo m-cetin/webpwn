@@ -60,7 +60,11 @@ Combination of the most commonly used tools to do subdomain enumeration.
 
 ![image](https://github.com/m-cetin/webpwn/assets/102237861/9b202680-f761-4c7e-a73b-42faba813400)
 
-Results are saved under `subdomains/domains.txt`. Results are then checked against httpx for port 80,443,8080,8000,8443 and the live domains are saved under `subdomains/live_domains.txt`.
+Results are saved under `subdomains/domains.txt`. 
+
+![image](https://github.com/m-cetin/webpwn/assets/102237861/08910799-44b4-44ff-a5b7-dcf0e13d949b)
+
+Results are then checked against httpx for port 80,443,8080,8000,8443 and the live domains are saved under `subdomains/live_domains.txt`.
 
 ### Option 2): 
 Coming soon. Hopefully. 
