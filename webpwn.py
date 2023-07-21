@@ -929,13 +929,13 @@ def main_menu():
 							existing_file = pathlib.Path("./subdomains/domains.txt")
 							ntlmrecon_existing_file=str(input("Do you want to scan your existing domains.txt list (Y/N): "))
 							if ntlmrecon_existing_file == "Y" or ntlmrecon_existing_file == "y":
-								print(subprocess.getoutput('ntlmrecon --infile %s --outfile ntlmrecon/ntlm-endpoints.txt' % (existing_file)))
+								print(subprocess.getoutput('ntlmrecon --infile %s --outfile ntlmrecon/ntlm-endpoints.txt -f' % (existing_file)))
 								print(Fore.GREEN + "[+] Saved results into ntlmrecon/ntlm-endpoints.txt")
 								print(Fore.RESET)
 					ntlmrecon_range=str(input("Do you want to scan a single IP/domain (IP), an IP range (R) or nothing more (N)? (IP/R/N): "))
 					if ntlmrecon_range == "r" or ntlmrecon_range == "R":
 						ip_range = str(input("Enter your IP range in CIDR notation (e.g. 193.168.2.2/24): "))
-						print(subprocess.getoutput('ntlmrecon --input %s --outfile ntlmrecon/ntlm-endpoints.txt' % (ip_range)))
+						print(subprocess.getoutput('ntlmrecon --input %s --outfile ntlmrecon/ntlm-endpoints.txt -f' % (ip_range)))
 						print(Fore.GREEN + "[+] Saved results into ntlmrecon/ntlm-endpoints-range.txt")
 						print(Fore.GREEN + "[+] Saved results into ntlmrecon/ntlm-endpoints-range.txt")
 						print(Fore.RESET)
@@ -943,7 +943,7 @@ def main_menu():
 						pass
 					if ntlmrecon_range == "IP" or ntlmrecon_range == "ip":
 						ip_address=str(input("Enter your IP address or domain name (e.g. 193.168.2.2 or google.com): "))
-						print(subprocess.getoutput('ntlmrecon --input %s --outfile ntlmrecon/ntlm-endpoints.txt' % (ip_address)))
+						print(subprocess.getoutput('ntlmrecon --input %s --outfile ntlmrecon/ntlm-endpoints.txt -f' % (ip_address)))
 						print(Fore.GREEN + "[+] Saved results into ntlmrecon/ntlm-endpoints-ip.txt")
 						print(Fore.GREEN + "[+] Saved results into ntlmrecon/ntlm-endpoints-ip.txt")
 						print(Fore.RESET)
