@@ -1638,8 +1638,9 @@ def main_menu():
 			print("--------------------------------------------")
 			print(Fore.RESET)
 			fields = ('(1) - All-in-One Recon - subdomains and active testing (WAF, Zone Transfer, etc.)!\n'
-				'(2) - Subdomain enum only using more tools\n'
-		  	   '(3) - Power enum with waybackurls and gau\n'
+				'(2) - Subdomain enum using more tools\n'
+				'(3) - Reverse lookup using knock knock\n'
+				'(4) - Power enum with waybackurls and gau\n'
 		  	   '(r) - return\n'
 		  	  '(q) - to quit\n\n'
 				  'Your choice: ')
