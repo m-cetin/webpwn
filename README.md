@@ -106,6 +106,7 @@ Subdomain Enumeration tools:
 - [Turbolist3r](https://github.com/fleetcaptain/Turbolist3r) by [fleetcaptain](https://github.com/fleetcaptain)
 - [assetfinder](https://github.com/tomnomnom/assetfinder) by [tomnomnom](https://github.com/tomnomnom)
 - [knockknock](https://github.com/harleo/knockknock) by [harleo](https://github.com/harleo)
+- [aort](https://github.com/D3Ext/AORT) by [D3Exter](https://github.com/D3Ext)
 
 Back to the future enumeration tools:
 - [waybackurls](https://github.com/tomnomnom/waybackurls) by [tomnomnom](https://github.com/tomnomnom)
