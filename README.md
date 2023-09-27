@@ -56,7 +56,16 @@ Enter the full name of the target person and their domain (@domain.com), to chec
 ## Menu 2 - Subdomain Enumeration
 
 ### Option 1): 
-Combination of the most commonly used tools to do subdomain enumeration.
+
+Using AORT to do subdomain enum + active checks (WAF detection, zone transfer, etc.).
+
+![image](https://github.com/m-cetin/webpwn/assets/102237861/fe02aaba-eab5-48a8-90b9-9b0d1b4e3512)
+
+Results are saved under `subdomains/domains.txt`. 
+
+### Option 2): 
+
+Combination of the most commonly used tools to do subdomain enumeration. This is subdomain enumeration only.
 
 ![image](https://github.com/m-cetin/webpwn/assets/102237861/9b202680-f761-4c7e-a73b-42faba813400)
 
@@ -66,10 +75,10 @@ Results are saved under `subdomains/domains.txt`.
 
 Results are then checked against httpx for port 80,443,8080,8000,8443 and the live domains are saved under `subdomains/live_domains.txt`.
 
-### Option 2): 
+### Option 3): 
 Coming soon. Hopefully. 
 
-### Option 3): 
+### Option 4): 
 Enumerate your target with waybackurls and gau to get endpoints from the past. 
 
 ![image](https://github.com/m-cetin/webpwn/assets/102237861/447cb472-69a7-4b05-bea9-90f2c1b40e12)
