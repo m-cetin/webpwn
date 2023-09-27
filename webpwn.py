@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # Collection of common pentest tools to get initial foothold into a company
-# author: Mesut Cetin, RedTeamer IT Security
+# author: Mesut Cetin, RedTeamer IT Security // www.redteamer.de
 # -*- coding: utf-8 -*-
 
 import colorama
