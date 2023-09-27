@@ -49,7 +49,7 @@ Gathering emails from Xing and LinkedIn. Enter your XING credentials, when asked
 The mails are saved under `/recon` in different formats. `fullname-emails.txt` has the format {firstname}.{lastname}@company.com, `emails.txt` has the format {f}.{lastname}@company.com, and other common mail pattern you can find there. There's also an option to bruteforce names with X certain letters, for example adm@company.com, etc.
 
 ## Menu 1b) - E-Mail convention check
-Enter the full name of the target person and their domain (@domain.com), to check against Microsoft Azure, if the email exists. German umlauts (ä,ö,ü and ß) are automatically converted to their according usable form (ä -> ae, etc.). Furthermore, hyphe (-) signs work as well. If someone has the name "Anna-Lena Schmidt", versions like a-l.schmidt@company.com and similiar are being considered. 
+Enter the full name of the target person and their domain (@domain.com), to check against Microsoft Outlook and Azure, if the email exists. German umlauts (ä,ö,ü and ß) are automatically converted to their according usable form (ä -> ae, etc.). Furthermore, hyphe (-) signs work as well. If someone has the name "Anna-Lena Schmidt", versions like a-l.schmidt@company.com and similiar are being considered. 
 
 ![image](https://github.com/m-cetin/webpwn/assets/102237861/4db52e31-225c-4b14-8bbb-ae8640e9685b)
 
