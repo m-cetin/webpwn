@@ -63,7 +63,7 @@ Using AORT to do subdomain enum + active checks (WAF detection, zone transfer, e
 
 Results are saved under `subdomains/domains.txt`. 
 
-If you find any api keys (like Google Maps API), you can use [KeyHacks](https://github.com/streaak/keyhacks#Google-Maps-API) key to check how to use them. 
+If you find any api keys (like Google Maps API), you can use [KeyHacks](https://github.com/streaak/keyhacks#Google-Maps-API) to check how to use them. 
 
 ### Option 2): 
 
