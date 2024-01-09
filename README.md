@@ -118,6 +118,7 @@ Subdomain Enumeration tools:
 - [assetfinder](https://github.com/tomnomnom/assetfinder) by [tomnomnom](https://github.com/tomnomnom)
 - [knockknock](https://github.com/harleo/knockknock) by [harleo](https://github.com/harleo)
 - [aort](https://github.com/D3Ext/AORT) by [D3Exter](https://github.com/D3Ext)
+- [reverseip](https://github.com/novsession/reverseip) by [novsession](https://github.com/novsession)
 
 Back to the future enumeration tools:
 - [waybackurls](https://github.com/tomnomnom/waybackurls) by [tomnomnom](https://github.com/tomnomnom)
