@@ -65,3 +65,4 @@ urllib3==2.0.3
 XlsxWriter==3.1.2
 aort
 Wappalyzer
+ipaddress
