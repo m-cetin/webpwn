@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # Collection of common pentest tools to get initial foothold into a company
-# author: Mesut Cetin, RedTeamer IT Security // www.redteamer.de
+# author: Mesut Cetin, RedTeamer IT Security
 # -*- coding: utf-8 -*-
 
 import colorama
@@ -10,6 +10,7 @@ import argparse
 import requests
 import json
 import re
+import threading
 import unicodedata
 import argparse
 import os
@@ -23,6 +24,7 @@ import urllib3
 import warnings
 import socket
 import pydig
+import ipaddress
 import dns.resolver
 from shutil import which
 from subprocess import check_call, STDOUT
@@ -40,6 +42,12 @@ from datetime import datetime
 from time import sleep
 from alive_progress import alive_bar
 import xml.etree.ElementTree as ET
+
+class Colors:
+    BLUE = "\033[94m"
+    GREEN = "\033[92m"
+    YELLOW = "\033[93m"
+    END = "\033[0m"
 
 # print ASCII banner
 def banner():
@@ -194,22 +202,34 @@ def mail_enum(domain):
 
 # Domain Zone Transfer Attack Function
 def axfr(domain):
-    print(c.BLUE + "\n[" + c.END + c.GREEN + "+" + c.END + c.BLUE + "] Starting Domain Zone Transfer attack...\n" + c.END)
-    sleep(0.2)
-    """
-    Iterate through the name servers and try an AXFR attack on everyone
-    """
-    ns_answer = dns.resolver.resolve(domain, 'NS')
-    for server in ns_answer:
-        ip_answer = dns.resolver.resolve(server.target, 'A')
-        for ip in ip_answer:
-            try:
-                zone = dns.zone.from_xfr(dns.query.xfr(str(ip), domain))
-                for host in zone:
-                    print(c.YELLOW + "Found Host: {}".format(host) + c.END)
-            except Exception as e:
-                print(c.YELLOW + "NS {} refused zone transfer!".format(server) + c.END)
-                continue
+    try:
+        print(c.BLUE + "\n[" + c.END + c.GREEN + "+" + c.END + c.BLUE + "] Starting Domain Zone Transfer attack...\n" + c.END)
+        sleep(0.2)
+        
+        """
+        Iterate through the name servers and try an AXFR attack on everyone
+        """
+        ns_answer = dns.resolver.resolve(domain, 'NS')
+        
+        for server in ns_answer:
+            ip_answer = dns.resolver.resolve(server.target, 'A')
+            
+            for ip in ip_answer:
+                try:
+                    zone = dns.zone.from_xfr(dns.query.xfr(str(ip), domain))
+                    
+                    for host in zone:
+                        print(c.YELLOW + "Found Host: {}".format(host) + c.END)
+                        
+                except dns.resolver.NoNameservers as e:
+                    print(c.YELLOW + f"NS {server} refused zone transfer! Error: {e}" + c.END)
+                    
+                except Exception as e:
+                    print(c.YELLOW + f"Error during zone transfer for NS {server}: {e}" + c.END)
+                    continue
+                    
+    except Exception as e:
+        print(c.RED + f"Error in AXFR attack: {e}" + c.END)
 
 # Modified function from https://github.com/Nefcore/CRLFsuite WAF detector script <3
 def wafDetector(domain):
@@ -355,169 +375,190 @@ def subTakeover(all_subdomains):
 
 # Function to enumerate github and cloud
 def cloudgitEnum(domain):
-    print(c.BLUE + "\n[" + c.END + c.GREEN + "+" + c.END + c.BLUE + "] Looking for git repositories and public development info\n" + c.END)
-    sleep(0.2)
     try:
-        r = requests.get("https://" + domain + "/.git/", verify=False)
-        print(c.YELLOW + "Git repository URL: https://" + domain + "/.git/ - " + str(r.status_code) + " status code" + c.END)
-    except:
-        pass
-    try:
-        r = requests.get("https://bitbucket.org/" + domain.split(".")[0])
-        print(c.YELLOW + "Bitbucket account URL: https://bitbucket.org/" + domain.split(".")[0] + " - " + str(r.status_code) + " status code" + c.END)
-    except:
-        pass
-    try:
-        r = requests.get("https://github.com/" + domain.split(".")[0])
-        print(c.YELLOW + "Github account URL: https://github.com/" + domain.split(".")[0] + " - " + str(r.status_code) + " status code" + c.END)
-        #if r.status_code == 200:
-            #git_option = input("Do you want to analyze further the github account and its repos? [y/n]: ")
-            #if git_option == "y" or git_option == "yes":
-                #domain_name = domain.split(".")[0]
-                #r = requests.get("https://api.github.com/users/{domain_name}/repos")
-                #__import__('pdb').set_trace()
-    except:
-        pass
-    try:
-        r = requests.get("https://gitlab.com/" + domain.split(".")[0])
-        print(c.YELLOW + "Gitlab account URL: https://gitlab.com/" + domain.split(".")[0] + " - " + str(r.status_code) + " status code" + c.END)
-    except:
-        pass
+        print("\n[+] Suche nach Git-Repositories und öffentlichen Entwicklungsdaten\n")
+        sleep(0.2)
+
+        git_url = "https://" + domain + "/.git/"
+        bitbucket_url = "https://bitbucket.org/" + domain.split(".")[0]
+        github_url = "https://github.com/" + domain.split(".")[0]
+        gitlab_url = "https://gitlab.com/" + domain.split(".")[0]
+
+        # Git Repository
+        try:
+            r = requests.get(git_url, verify=False)
+            print("Git-Repository-URL: " + git_url + " - " + str(r.status_code) + " Statuscode")
+        except requests.RequestException as e:
+            print(f"Error accessing Git repository: {e}")
+
+        # Bitbucket Account
+        try:
+            r = requests.get(bitbucket_url)
+            print("Bitbucket-Account-URL: " + bitbucket_url + " - " + str(r.status_code) + " Statuscode")
+        except requests.RequestException as e:
+            print(f"Error accessing Bitbucket account: {e}")
+
+        # Github Account
+        try:
+            r = requests.get(github_url)
+            print("Github-Account-URL: " + github_url + " - " + str(r.status_code) + " Statuscode")
+            # Hier könntest du weitere Analysen durchführen, falls gewünscht
+        except requests.RequestException as e:
+            print(f"Error accessing Github account: {e}")
+
+        # Gitlab Account
+        try:
+            r = requests.get(gitlab_url)
+            print("Gitlab-Account-URL: " + gitlab_url + " - " + str(r.status_code) + " Statuscode")
+        except requests.RequestException as e:
+            print(f"Error accessing Gitlab account: {e}")
+
+    except Exception as ex:
+        print(f"An unexpected error occurred: {ex}")
 
 # Wayback Machine function
 def wayback(domain):
-    print(c.BLUE + "\n[" + c.END + c.GREEN + "+" + c.END + c.BLUE + "] Using The Wayback Machine to discover endpoints" + c.END)
-    wayback_url = f"http://web.archive.org/cdx/search/cdx?url=*.{domain}/*&output=json&fl=original&collapse=urlkey"
-    """
-    Get information from Wayback Machine
-    """
     try:
+        os.makedirs("subdomains", exist_ok=True)
+        domain_name = domain.split(".")[0]
+
+        wayback_url = f"http://web.archive.org/cdx/search/cdx?url=*.{domain}/*&output=json&fl=original&collapse=urlkey"
         r = requests.get(wayback_url, timeout=20)
-        results = r.json()
-        results = results[1:]
+        r.raise_for_status()
+        results = r.json()[1:]
+
+        with open(os.path.join("subdomains", f"{domain_name}-wayback.txt"), "w") as file:
+            for result in results:
+                file.write(result[0] + "\n")
+
+        urlscan_url = f"https://urlscan.io/api/v1/search/?q=domain:{domain}"
+        r = requests.get(urlscan_url, timeout=20)
+        r.raise_for_status()
+        myresp = r.json()
+        results = myresp.get("results", [])
+
+        with open(os.path.join("subdomains", f"{domain_name}-wayback.txt"), "a") as file:
+            for res in results:
+                url = res["task"]["url"]
+                file.write(url + "\n")
+
+        print(Colors.YELLOW + f"\nAll URLs stored in subdomains/{domain_name}-wayback.txt" + Colors.END)
+        sleep(0.3)
+
+        # Now filter wayback output to organize endpoints
+        print(Colors.YELLOW + f"\nGetting .json endpoints from URLs..." + Colors.END)
+        sleep(0.5)
+
+        try:
+            os.remove(os.path.join("subdomains", f"{domain_name}-json.txt"))
+        except:
+            pass
+
+        urls = open(os.path.join("subdomains", f"{domain_name}-wayback.txt"), "r").readlines()
+        json_endpoints = []
+
+        for url in urls:
+            if ".json" in url and url not in json_endpoints:
+                json_endpoints.append(url)
+
+        # Store .json endpoints
+        with open(os.path.join("subdomains", f"{domain_name}-json-endpoints.txt"), "a") as f:
+            for json_url in json_endpoints:
+                f.write(json_url)
+
+        json_len = len(json_endpoints)
+        print(Colors.YELLOW + f"JSON endpoints stored in subdomains/{domain_name}-json.txt ({json_len} endpoints)" + Colors.END)
+        sleep(0.4)
+
+        # Continue with the rest of the code...
+
+        print(Colors.YELLOW + f"Filtering out URLs to find potential XSS and Open Redirect vulnerable endpoints..." + Colors.END)
+        sleep(0.2)
+
+        try:
+            os.remove(os.path.join("subdomains", f"{domain_name}-redirects.txt"))
+        except:
+            pass
+
+        wayback_content = open(os.path.join("subdomains", f"{domain_name}-wayback.txt"), "r").readlines()
+        redirects_file_exists = 1
+
+        if os.path.exists("redirects.json") == False:
+            redirects_file_exists = 0
+            r = requests.get("https://raw.githubusercontent.com/D3Ext/AORT/main/utils/redirects.json")
+            redirects_file = open("redirects.json", "w")
+            redirects_file.write(r.text)
+            redirects_file.close()
+
+        redirect_urls = []
+        redirects_raw = open("redirects.json")
+        redirects_json = json.load(redirects_raw)
+        for line in wayback_content:
+            line = line.strip()
+            for json_line in redirects_json["patterns"]:
+                if re.findall(rf".*{json_line}.*?", line):
+                    endpoint_url = re.findall(rf".*{json_line}.*?", line)[0] + "FUZZ"
+                    if endpoint_url not in redirect_urls:
+                        redirect_urls.append(endpoint_url)
+
+        try:
+            os.remove(os.path.join("subdomains", f"{domain_name}-redirects.txt"))
+        except:
+            pass
+
+        with open(os.path.join("subdomains", f"{domain_name}-redirects.txt"), "a") as f:
+            for filtered_url in redirect_urls:
+                f.write(filtered_url + "\n")
+
+        end_info = len(redirect_urls)
+        print(Colors.YELLOW + f"Open Redirects endpoints stored in subdomains/{domain_name}-redirects.txt ({end_info} endpoints)" + Colors.END)
+
+        xss_file_exists = 1
+        if os.path.exists("xss.json") == False:
+            xss_file_exists = 0
+            r = requests.get("https://raw.githubusercontent.com/D3Ext/AORT/main/utils/xss.json")
+            xss_file = open("xss.json", "w")
+            xss_file.write(r.text)
+            xss_file.close()
+
+        xss_urls = []
+        xss_raw = open("xss.json")
+        xss_json = json.load(xss_raw)
+        for line in wayback_content:
+            line = line.strip()
+            for json_line in xss_json["patterns"]:
+                if re.findall(rf".*{json_line}.*?", line):
+                    endpoint_url = re.findall(rf".*{json_line}.*?", line)[0] + "FUZZ"
+                    if endpoint_url not in xss_urls:
+                        xss_urls.append(endpoint_url)
+
+        try:
+            os.remove(os.path.join("subdomains", f"{domain_name}-xss.txt"))
+        except:
+            pass
+
+        with open(os.path.join("subdomains", f"{domain_name}-xss.txt"), "a") as f:
+            for filtered_url in xss_urls:
+                f.write(filtered_url + "\n")
+
+        end_info = len(xss_urls)
+        print(Colors.YELLOW + f"XSS endpoints stored in subdomains/{domain_name}-xss.txt ({end_info} endpoints)" + Colors.END)
+        sleep(0.1)
+
+        if redirects_file_exists == 0:
+            os.remove("redirects.json")
+        if xss_file_exists == 0:
+            os.remove("xss.json")
+
     except KeyboardInterrupt:
-        sys.exit(c.RED + "\n[!] Interrupt handler received, exiting...\n" + c.END)
-    except:
-        pass
+        sys.exit(Colors.RED + "\n[!] Interrupt handler received, exiting...\n" + Colors.END)
+    except requests.exceptions.RequestException as e:
+        print(Colors.RED + f"\n[!] Error during HTTP request: {e}\n" + Colors.END)
+    except json.JSONDecodeError as e:
+        print(Colors.RED + f"\n[!] Error decoding JSON: {e}\n" + Colors.END)
+    except Exception as e:
+        print(Colors.RED + f"\n[!] An unexpected error occurred: {e}\n" + Colors.END)
 
-    domain_name = domain.split(".")[0]
-    try:
-        os.remove(f"{domain_name}-wayback.txt")
-    except:
-        pass
-    for result in results:
-        """
-        Save data to a file
-        """
-        file = open(f"{domain_name}-wayback.txt", "a")
-        file.write(result[0] + "\n")
-
-    """
-    Get URLs and endpoints from URLScan
-    """
-    try:
-        r = requests.get(f"https://urlscan.io/api/v1/search/?q=domain:{domain}", timeout=20)
-        myresp = json.loads(r.text)
-        results = myresp["results"]
-
-        for res in results:
-            url = res["task"]["url"]
-            file = open(f"{domain_name}-wayback.txt", "a")
-            file.write(url + "\n")
-    except:
-        pass
-
-    print(c.YELLOW + f"\nAll URLs stored in {domain_name}-wayback.txt" + c.END)
-    sleep(0.3)
-    # Now filter wayback output to organize endpoints
-    print(c.YELLOW + f"\nGetting .json endpoints from URLs..." + c.END)
-    sleep(0.5)
-    try: # Remove existing file (avoid error when appending data to file)
-        os.remove(f"{domain_name}-json.txt")
-    except:
-        pass
-    urls = open(f"{domain_name}-wayback.txt", "r").readlines()
-    json_endpoints = []
-    for url in urls:
-        if ".json" in url and url not in json_endpoints:
-            json_endpoints.append(url)
-    # Store .json endpoints
-    f = open(f"{domain_name}-json-endpoints.txt", "a")
-    for json_url in json_endpoints:
-        f.write(json_url)
-    f.close()
-    json_len = len(json_endpoints)
-    print(c.YELLOW + f"JSON endpoints stored in {domain_name}-json.txt ({json_len} endpoints)" + c.END)
-    sleep(0.4)
-    print(c.YELLOW + f"Filtering out URLs to find potential XSS and Open Redirect vulnerable endpoints..." + c.END)
-    sleep(0.2)
-    wayback_content = open(f"{domain_name}-wayback.txt", "r").readlines()
-    redirects_file_exists = 1
-    # Check if redirects.json parameters file exists
-    if os.path.exists("redirects.json") == False:
-        redirects_file_exists = 0
-        r = requests.get("https://raw.githubusercontent.com/D3Ext/AORT/main/utils/redirects.json")
-        redirects_file = open("redirects.json", "w")
-        redirects_file.write(r.text)
-        redirects_file.close()
-
-    redirect_urls = []
-    redirects_raw = open("redirects.json")
-    redirects_json = json.load(redirects_raw)
-    for line in wayback_content:
-        line = line.strip()
-        for json_line in redirects_json["patterns"]:
-            if re.findall(rf".*{json_line}.*?", line):
-                endpoint_url = re.findall(rf".*{json_line}.*?", line)[0] + "FUZZ"
-                if endpoint_url not in redirect_urls:
-                    redirect_urls.append(endpoint_url)
-
-    try: # Remove file if exists
-        os.remove(f"{domain_name}-redirects.txt")
-    except:
-        pass
-    # Write open redirects filter content
-    f = open(f"{domain_name}-redirects.txt", "a")
-    for filtered_url in redirect_urls:
-        f.write(filtered_url + "\n")
-    f.close()
-    end_info = len(redirect_urls)
-    print(c.YELLOW + f"Open Redirects endpoints stored in {domain_name}-redirects.txt ({end_info} endpoints)" + c.END)
-
-    xss_file_exists = 1
-    if os.path.exists("xss.json") == False:
-        xss_file_exists = 0
-        r = requests.get("https://raw.githubusercontent.com/D3Ext/AORT/main/utils/xss.json")
-        xss_file = open("xss.json", "w")
-        xss_file.write(r.text)
-        xss_file.close()
-
-    # Filter potential XSS
-    xss_urls = []
-    xss_raw = open("xss.json")
-    xss_json = json.load(xss_raw)
-    for line in wayback_content:
-        line = line.strip()
-        for json_line in xss_json["patterns"]:
-            if re.findall(rf".*{json_line}.*?", line):
-                endpoint_url = re.findall(rf".*{json_line}.*?", line)[0] + "FUZZ"
-                if endpoint_url not in xss_urls:
-                    xss_urls.append(endpoint_url)
-
-    # Write xss filter content
-    f = open(f"{domain_name}-xss.txt", "a")
-    for filtered_url in xss_urls:
-        f.write(filtered_url + "\n")
-    f.close()
-
-    end_info = len(xss_urls)
-    print(c.YELLOW + f"XSS endpoints stored in {domain_name}-xss.txt ({end_info} endpoints)" + c.END)
-    sleep(0.1)
-
-    if redirects_file_exists == 0:
-        os.remove("redirects.json")
-    if xss_file_exists == 0:
-        os.remove("xss.json")
 
 # Query the domain
 def whoisLookup(domain):
@@ -549,36 +590,6 @@ def checkStatus(subdomain, file):
                 file.write("http://" + subdomain + "\n")
         except:
             pass
-
-# Check status function
-def checkActiveSubs(domain,doms):
-    global file
-    import threading
-
-    print(c.BLUE + "\n[" + c.END + c.GREEN + "+" + c.END + c.BLUE + "] Probing active subdomains..." + c.END)
-
-    if len(doms) >= 100:
-        subs_total = len(doms)
-        option = input(c.YELLOW + f"\nThere are a lot of subdomains to check, ({subs_total}) do you want to check all of them [y/n]: " + c.END)
-        
-        if option == "n" or option == "no":
-            sleep(0.2)
-            return
-    """ Define filename """
-    domain_name = domain.split(".")[0]
-    file = open(f"{domain_name}-active-subs.txt", "w")
-    """
-    Iterate through all subdomains in threads
-    """
-    threads_list = []
-    for subdomain in doms:
-        t = threading.Thread(target=checkStatus, args=(subdomain,file))
-        t.start()
-        threads_list.append(t)
-    for proc_thread in threads_list: # Wait until all thread finish
-        proc_thread.join()
-
-    print(c.YELLOW + f"\nActive subdomains stored in {domain_name}-active-subs.txt" + c.END)
 
 # Check if common ports are open
 def portScan(domain):
@@ -689,28 +700,32 @@ def findSecretsFromUrl(url):
 
 # Perform basic enumeration
 def basicEnum(domain):
-    print(c.BLUE + "\n[" + c.END + c.GREEN + "+" + c.END + c.BLUE + "] Performing some basic enumeration...\n" + c.END)
-    """
-    Use python-Wappalyzer
-    """
     try:
-        print()
+        print("\n[+] Doing basic enumeration...\n")
+        """
+        Verwende python-Wappalyzer
+        """
         from Wappalyzer import Wappalyzer, WebPage
         wappalyzer = Wappalyzer.latest()
         webpage = WebPage.new_from_url('https://' + domain)
         info = wappalyzer.analyze_with_versions(webpage)
 
         if info != "{}":
-            print(c.YELLOW + json.dumps(info, sort_keys=True, indent=4) + c.END)
+            print(json.dumps(info, sort_keys=True, indent=4))
         else:
-            print(c.YELLOW + "\nNo common technologies found" + c.END)
+            print("\nKeine gemeinsamen Technologien gefunden")
 
-        endpoints = ["robots.txt","xmlrpc.php","wp-cron.php","actuator/heapdump","datahub/heapdump","datahub/actuator/heapdump","heapdump","admin/",".env",".config","version.txt","README.md","license.txt","config.php.bak","api/","feed.xml","CHANGELOG.md","config.json","cgi-bin/","env.json",".htaccess","js/","kibana/","log.txt"]
+        endpoints = ["robots.txt", "xmlrpc.php", "wp-cron.php", "actuator/heapdump", "datahub/heapdump", "datahub/actuator/heapdump", "heapdump", "admin/", ".env", ".config", "version.txt", "README.md", "license.txt", "config.php.bak", "api/", "feed.xml", "CHANGELOG.md", "config.json", "cgi-bin/", "env.json", ".htaccess", "js/", "kibana/", "log.txt"]
+
         for end in endpoints:
-            r = requests.get(f"https://{domain}/{end}", timeout=4)
-            print(c.YELLOW + f"https://{domain}/{end} - " + str(r.status_code) + c.END)
-    except:
-        print(c.YELLOW + "An error has ocurred or unable to enumerate" + c.END)
+            try:
+                r = requests.get(f"https://{domain}/{end}", timeout=4)
+                print(f"https://{domain}/{end} - " + str(r.status_code))
+            except requests.RequestException as e:
+                print(f"Fehler beim Zugriff auf {end}: {e}")
+
+    except Exception as ex:
+        print(f"Ein unerwarteter Fehler ist aufgetreten: {ex}")
 
 # Main Domain Discoverer Function
 def SDom(domain,filename):
@@ -882,6 +897,51 @@ def checkDomain(domain):
         print(c.YELLOW + "\nTarget doesn't exists or is down" + c.END)
         sys.exit(1)
 
+
+def install_requests_module():
+    try:
+        print('\nChecking Requirements.....')
+        time.sleep(0.5)
+        import requests  # call module
+        print('\nAll Available, Go Main Tools.....')
+        time.sleep(0.5)
+    except ImportError:
+        os.system('pip install requests')  # install module
+        print('\nAll Available, Go Main Tools.....')
+        time.sleep(0.5)
+
+def clear_terminal():
+    os.system('cls' if os.name == 'nt' else 'clear')  # clear terminal
+
+def reverse():
+    try:
+        s = requests.Session()
+        ua = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36'}
+        site_list_path = input('Enter the path of the list file (e.g. list.txt): ')
+        site_list = open(site_list_path, 'r').read().splitlines()
+
+        names = []
+        for site in site_list:
+            if site.startswith("http://"):
+                site = site.replace("http://", "")
+            if site.startswith("https://"):
+                site = site.replace("https://", "")
+            response = s.get("https://rapiddns.io/sameip/" + site + "?full=1#result", headers=ua).content.decode("utf-8")
+            pattern = r"</th>\n<td>(.*?)</td>"
+            results = re.findall(pattern, response)
+            print("nov@session:~$ " + site + " - [ " + str(len(results)) + " ]")
+
+            for line in results:
+                line = line.strip()  # delete ' '
+                if line.startswith("www."):
+                    line = "" + line[4:]
+                if line not in names:
+                    names.append(line)
+                    with open('subdomains/domains.txt', 'a+') as f:
+                        f.write(line + "\n")  # write output
+
+    except Exception as e:
+        print("error : ", str(e))
 
 # sqlmap mass exploitation
 def mass_sql_injection(burp_history_xml):
@@ -1358,9 +1418,9 @@ def crosslinked(args):
 def emailExistsOutlook(email):
     try:
         # Delay between requests
-        delay = random.uniform(1, 3)
+        delay = random.uniform(0, 1)
         # Maximum jitter to add to the delay
-        max_jitter = 0.5
+        max_jitter = 0.1
 
         # Random jitter
         jitter = random.uniform(0, max_jitter)
@@ -1512,9 +1572,9 @@ def getTheirMails():
 def emailExists(email):
     try:
         # Delay between requests
-        delay = random.uniform(1, 3)
+        delay = random.uniform(0, 1)
         # Maximum jitter to add to the delay
-        max_jitter = 0.5
+        max_jitter = 0.2
 
         # Random jitter
         jitter = random.uniform(0, max_jitter)
@@ -1638,9 +1698,10 @@ def main_menu():
 			print("--------------------------------------------")
 			print(Fore.RESET)
 			fields = ('(1) - All-in-One Recon - subdomains and active testing (WAF, Zone Transfer, etc.)!\n'
-				'(2) - Subdomain enum using more tools\n'
-				'(3) - Reverse lookup using knock knock\n'
-				'(4) - Power enum with waybackurls and gau\n'
+				'(2) - Powerful subdomain enum\n'
+				'(3) - Reverse lookups using domain name\n'
+				'(4) - Reverse lookups using IPs\n'
+				'(5) - Power enum with waybackurls and gau\n'
 		  	   '(r) - return\n'
 		  	  '(q) - to quit\n\n'
 				  'Your choice: ')
@@ -1654,7 +1715,6 @@ def main_menu():
 				try:
 					pathlib.Path('subdomains').mkdir(parents=True,exist_ok=True)
 					SDom(domain,"subdomains/domains.txt")
-					portScan(domain)
 					ns_enum(domain)
 					axfr(domain)
 					mail_enum(domain)
@@ -1663,13 +1723,6 @@ def main_menu():
 					txt_enum(domain)
 					whoisLookup(domain)
 					basicEnum(domain)
-					findBackups(domain)
-					findSecrets(domain)
-					cloudgitEnum(domain)
-					wafDetector(domain)
-					checkActiveSubs(domain,doms)
-					wayback(domain)
-					subTakeover(doms)
 					try:
 						file.close()
 						continue
@@ -1792,6 +1845,14 @@ def main_menu():
 					print(Fore.RESET)
 
 			elif choice == "4":
+				try:
+					install_requests_module()
+					clear_terminal()
+					reverse()
+				except:
+					print(Fore.RED + "Something went wrong.")
+					print(Fore.RESET)
+			elif choice == "5":
 				print("Checking dependencies!")
 				try:
 					print("Let's see..")
